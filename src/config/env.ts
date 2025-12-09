@@ -21,8 +21,8 @@ interface EnvConfig {
   COOKIE_SECURE: boolean;
   COOKIE_SAME_SITE: "strict" | "lax" | "none";
 
-  OMISE_PUBLIC_KEY: string;
-  OMISE_SECRET_KEY: string;
+  // OMISE_PUBLIC_KEY: string;
+  // OMISE_SECRET_KEY: string;
 }
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
@@ -58,6 +58,6 @@ export const config: EnvConfig = {
     | "strict"
     | "lax"
     | "none",
-  OMISE_PUBLIC_KEY: getEnvVar("OMISE_PUBLIC_KEY"),
-  OMISE_SECRET_KEY: getEnvVar("OMISE_SECRET_KEY"),
+  // OMISE_PUBLIC_KEY: getEnvVar("OMISE_PUBLIC_KEY"),
+  // OMISE_SECRET_KEY: getEnvVar("OMISE_SECRET_KEY"),
 };
