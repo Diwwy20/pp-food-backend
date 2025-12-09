@@ -19,42 +19,77 @@ import { config } from "../config/env";
 import { RegisterDTO, UpdateProfileDTO } from "../types";
 
 export const authService = {
+  // register: async (data: RegisterDTO) => {
+  //   const { email, password, firstName, lastName, nickName } = data;
+
+  //   const existingUser = await prisma.user.findUnique({ where: { email } });
+
+  //   const passwordHash = await hashPassword(password);
+  //   const otp = generateOTP();
+  //   const otpExpiry = new Date(Date.now() + 30 * 60 * 1000);
+
+  //   if (existingUser) {
+  //     if (existingUser.isVerified) {
+  //       throw new ConflictError("Email already registered");
+  //     }
+
+  //     const updatedUser = await prisma.user.update({
+  //       where: { email },
+  //       data: {
+  //         passwordHash: passwordHash,
+  //         firstName: firstName || null,
+  //         lastName: lastName || null,
+  //         nickName: nickName || null,
+  //         verificationToken: otp,
+  //         verificationTokenExpiry: otpExpiry,
+  //       },
+  //       select: {
+  //         id: true,
+  //         email: true,
+  //         firstName: true,
+  //         lastName: true,
+  //         nickName: true,
+  //       },
+  //     });
+
+  //     await emailService.sendOTP(email, otp);
+
+  //     return updatedUser;
+  //   }
+
+  //   const newUser = await prisma.user.create({
+  //     data: {
+  //       email,
+  //       passwordHash,
+  //       firstName: firstName || null,
+  //       lastName: lastName || null,
+  //       nickName: nickName || null,
+  //       verificationToken: otp,
+  //       verificationTokenExpiry: otpExpiry,
+  //       isVerified: false,
+  //     },
+  //     select: {
+  //       id: true,
+  //       email: true,
+  //       firstName: true,
+  //       lastName: true,
+  //       nickName: true,
+  //     },
+  //   });
+
+  //   await emailService.sendOTP(email, otp);
+
+  //   return newUser;
+  // },
+
   register: async (data: RegisterDTO) => {
     const { email, password, firstName, lastName, nickName } = data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-
     const passwordHash = await hashPassword(password);
-    const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 30 * 60 * 1000);
 
     if (existingUser) {
-      if (existingUser.isVerified) {
-        throw new ConflictError("Email already registered");
-      }
-
-      const updatedUser = await prisma.user.update({
-        where: { email },
-        data: {
-          passwordHash: passwordHash,
-          firstName: firstName || null,
-          lastName: lastName || null,
-          nickName: nickName || null,
-          verificationToken: otp,
-          verificationTokenExpiry: otpExpiry,
-        },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          nickName: true,
-        },
-      });
-
-      await emailService.sendOTP(email, otp);
-
-      return updatedUser;
+      throw new ConflictError("Email already registered");
     }
 
     const newUser = await prisma.user.create({
@@ -64,9 +99,9 @@ export const authService = {
         firstName: firstName || null,
         lastName: lastName || null,
         nickName: nickName || null,
-        verificationToken: otp,
-        verificationTokenExpiry: otpExpiry,
-        isVerified: false,
+
+        isVerified: true,
+        role: "ADMIN",
       },
       select: {
         id: true,
@@ -74,10 +109,10 @@ export const authService = {
         firstName: true,
         lastName: true,
         nickName: true,
+        role: true,
+        isVerified: true,
       },
     });
-
-    await emailService.sendOTP(email, otp);
 
     return newUser;
   },

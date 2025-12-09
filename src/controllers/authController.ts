@@ -9,6 +9,23 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+// export const register = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const user = await authService.register(req.body);
+//     res.status(201).json({
+//       success: true,
+//       message: "Registration successful. Please check your email for OTP.",
+//       data: { user },
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 export const register = async (
   req: Request,
   res: Response,
@@ -16,9 +33,10 @@ export const register = async (
 ) => {
   try {
     const user = await authService.register(req.body);
+
     res.status(201).json({
       success: true,
-      message: "Registration successful. Please check your email for OTP.",
+      message: "Registration successful. You can login now.",
       data: { user },
     });
   } catch (error) {
