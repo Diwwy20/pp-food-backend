@@ -3,8 +3,8 @@ node_modules
 
 /src/generated/prisma
 
-/uploaded/*
-!/uploaded/**/.gitkeep
+uploaded/*
+!uploaded/**/.gitkeep
 
 src/services/paymentService.ts
 src/routes/paymentRoutes.ts
