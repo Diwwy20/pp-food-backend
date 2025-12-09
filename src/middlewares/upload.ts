@@ -6,7 +6,7 @@ import { BadRequestError } from "../utils/errors";
 
 export const createUploadMiddleware = (baseFolder: string) => {
   const storage = multer.diskStorage({
-    destination: (req: Request, file, cb) => {
+    destination: (req: Request, _file, cb) => {
       let uploadDir = `uploaded/${baseFolder}`;
 
       if (baseFolder === "products") {
@@ -25,14 +25,14 @@ export const createUploadMiddleware = (baseFolder: string) => {
 
       cb(null, uploadDir);
     },
-    filename: (req, file, cb) => {
+    filename: (_req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const ext = path.extname(file.originalname);
       cb(null, `${baseFolder}-${uniqueSuffix}${ext}`);
     },
   });
 
-  const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+  const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
