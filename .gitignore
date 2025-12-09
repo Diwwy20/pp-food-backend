@@ -4,6 +4,7 @@ node_modules
 /src/generated/prisma
 
 uploaded/*
+!uploaded/**/
 !uploaded/**/.gitkeep
 
 src/services/paymentService.ts
