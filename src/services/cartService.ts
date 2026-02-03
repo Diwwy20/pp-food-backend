@@ -4,6 +4,14 @@ import { areOptionsEqual } from "../utils/compare";
 import { AddToCartDTO, CartItemOption, UpdateCartItemDTO } from "../types/cart";
 import { Prisma } from "@prisma/client";
 
+const calculatePricePerUnit = (basePrice: number, selectedOptions: any[]) => {
+  const optionsTotal = selectedOptions.reduce(
+    (sum, opt) => sum + Number(opt.price || 0),
+    0,
+  );
+  return basePrice + optionsTotal;
+};
+
 export const cartService = {
   getMyCart: async (userId: number) => {
     let cart = await prisma.cart.findUnique({
@@ -49,8 +57,17 @@ export const cartService = {
 
   addToCart: async (userId: number, data: AddToCartDTO) => {
     const { productId, quantity, selectedOptions } = data;
+    const optionsToSave = selectedOptions || [];
 
-    const optionsToSave: CartItemOption[] = selectedOptions || [];
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) throw new NotFoundError("Product not found");
+
+    const pricePerUnit = calculatePricePerUnit(
+      Number(product.price),
+      optionsToSave,
+    );
 
     let cart = await prisma.cart.findUnique({
       where: { userId },
@@ -65,15 +82,10 @@ export const cartService = {
     }
 
     const existingItem = cart.items.find((item) => {
-      const isSameProduct = item.productId === productId;
-
-      const existingOptions = item.selectedOptions as unknown as
-        | CartItemOption[]
-        | null;
-
-      const isSameOptions = areOptionsEqual(existingOptions, optionsToSave);
-
-      return isSameProduct && isSameOptions;
+      return (
+        item.productId === productId &&
+        areOptionsEqual(item.selectedOptions, optionsToSave)
+      );
     });
 
     if (existingItem) {
@@ -81,6 +93,7 @@ export const cartService = {
         where: { id: existingItem.id },
         data: {
           quantity: existingItem.quantity + quantity,
+          pricePerUnit,
         },
       });
     } else {
@@ -89,7 +102,8 @@ export const cartService = {
           cartId: cart.id,
           productId,
           quantity,
-          selectedOptions: optionsToSave as Prisma.InputJsonValue,
+          pricePerUnit,
+          selectedOptions: optionsToSave as any,
         },
       });
     }
@@ -100,32 +114,36 @@ export const cartService = {
   updateItem: async (
     userId: number,
     itemId: number,
-    data: UpdateCartItemDTO
+    data: UpdateCartItemDTO,
   ) => {
     const { quantity, selectedOptions } = data;
 
-    const cart = await prisma.cart.findUnique({ where: { userId } });
-    if (!cart) throw new NotFoundError("Cart not found");
-
-    const item = await prisma.cartItem.findFirst({
-      where: { id: itemId, cartId: cart.id },
+    const currentItem = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: { product: true },
     });
-    if (!item) throw new NotFoundError("Item not found in cart");
+
+    if (!currentItem) throw new NotFoundError("Item not found");
+
+    const optionsToSave =
+      selectedOptions || (currentItem.selectedOptions as any[]);
+    const pricePerUnit = calculatePricePerUnit(
+      Number(currentItem.product.price),
+      optionsToSave,
+    );
 
     if (quantity <= 0) {
-      return await prisma.cartItem.delete({ where: { id: itemId } });
+      await prisma.cartItem.delete({ where: { id: itemId } });
+    } else {
+      await prisma.cartItem.update({
+        where: { id: itemId },
+        data: {
+          quantity,
+          selectedOptions: optionsToSave as any,
+          pricePerUnit,
+        },
+      });
     }
-
-    const updateData: Prisma.CartItemUpdateInput = { quantity };
-
-    if (selectedOptions) {
-      updateData.selectedOptions = selectedOptions as Prisma.InputJsonValue;
-    }
-
-    await prisma.cartItem.update({
-      where: { id: itemId },
-      data: updateData,
-    });
 
     return await cartService.getMyCart(userId);
   },
