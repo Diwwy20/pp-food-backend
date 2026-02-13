@@ -1,14 +1,12 @@
-import nodemailer from "nodemailer";
+import * as brevo from "@getbrevo/brevo";
 import { config } from "../config/env";
 import { emailTemplates } from "../templates/emailTemplates";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: config.SMTP_USER,
-    pass: config.SMTP_PASS,
-  },
-});
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  config.BREVO_API_KEY,
+);
 
 interface SendEmailParams {
   to: string;
@@ -17,17 +15,21 @@ interface SendEmailParams {
 }
 
 const sendEmail = async ({ to, subject, html }: SendEmailParams) => {
-  try {
-    const info = await transporter.sendMail({
-      from: `"PP Food App" <${config.SMTP_USER}>`,
-      to: to,
-      subject: subject,
-      html: html,
-    });
+  const sendSmtpEmail = new brevo.SendSmtpEmail();
 
-    console.log(`✅ Email sent to ${to} | MessageID: ${info.messageId}`);
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = html;
+  sendSmtpEmail.sender = {
+    name: config.BREVO_SENDER_NAME,
+    email: config.BREVO_SENDER_EMAIL,
+  };
+  sendSmtpEmail.to = [{ email: to }];
+
+  try {
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log(`Email sent via Brevo to ${to} | ID: ${data.body.messageId}`);
   } catch (error) {
-    console.error("❌ Gmail Error:", error);
+    console.error("Brevo API Error:", error);
   }
 };
 

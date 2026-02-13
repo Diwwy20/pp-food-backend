@@ -8,16 +8,17 @@ interface EnvConfig {
   NODE_ENV: string;
   PORT: number;
   DATABASE_URL: string;
+  FRONTEND_URL: string;
 
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
-
   JWT_ACCESS_EXPIRES_IN: ExpiresInString;
   JWT_REFRESH_EXPIRES_IN: ExpiresInString;
 
-  SMTP_USER: string;
-  SMTP_PASS: string;
-  FRONTEND_URL: string;
+  BREVO_API_KEY: string;
+  BREVO_SENDER_EMAIL: string;
+  BREVO_SENDER_NAME: string;
+
   COOKIE_SECURE: boolean;
   COOKIE_SAME_SITE: "strict" | "lax" | "none";
 
@@ -43,15 +44,17 @@ export const config: EnvConfig = {
 
   JWT_ACCESS_EXPIRES_IN: getEnvVar(
     "ACCESS_TOKEN_EXPIRES_IN",
-    "15m"
+    "15m",
   ) as ExpiresInString,
   JWT_REFRESH_EXPIRES_IN: getEnvVar(
     "REFRESH_TOKEN_EXPIRES_IN",
-    "7d"
+    "7d",
   ) as ExpiresInString,
 
-  SMTP_USER: getEnvVar("SMTP_USER"),
-  SMTP_PASS: getEnvVar("SMTP_PASS"),
+  BREVO_API_KEY: getEnvVar("BREVO_API_KEY"),
+  BREVO_SENDER_EMAIL: getEnvVar("BREVO_SENDER_EMAIL"),
+  BREVO_SENDER_NAME: getEnvVar("BREVO_SENDER_NAME", "PP Food App"),
+
   FRONTEND_URL: getEnvVar("FRONTEND_URL"),
   COOKIE_SECURE: getEnvVar("COOKIE_SECURE", "false") === "true",
   COOKIE_SAME_SITE: getEnvVar("COOKIE_SAME_SITE", "lax") as
